@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Builder - Stress Lavoro-Correlato</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0a3d66;
+            color: #f5faff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: rgba(245, 250, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(245, 250, 255, 0.1);
+            animation: fadeIn 0.8s ease;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #f5faff;
+        }
+
+        .header .emoji {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .stress-bar-container {
+            margin-bottom: 30px;
+        }
+
+        .stress-label {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .stress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(245, 250, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid rgba(245, 250, 255, 0.2);
+        }
+
+        .stress-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #ff4444, #ff6b6b);
+            transition: all 0.5s ease;
+            border-radius: 15px;
+        }
+
+        .stress-fill.medium {
+            background: linear-gradient(90deg, #ff9500, #ffb347);
+            width: 66%;
+        }
+
+        .stress-fill.low {
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+            width: 33%;
+        }
+
+        .stress-fill.zero {
+            background: linear-gradient(90deg, #10b981, #059669);
+            width: 0%;
+        }
+
+        .question-box {
+            background: rgba(245, 250, 255, 0.08);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid rgba(245, 250, 255, 0.15);
+        }
+
+        .question {
+            font-size: 1.3em;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .word-blank {
+            display: inline-flex;
+            min-width: 200px;
+            min-height: 50px;
+            background: rgba(79, 172, 254, 0.2);
+            border: 3px dashed rgba(79, 172, 254, 0.5);
+            border-radius: 10px;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 10px;
+            margin: 0 5px;
+            vertical-align: middle;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .letters-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .letter-tile {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #0a3d66;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            user-select: none;
+        }
+
+        .letter-tile:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+        }
+
+        .letter-tile.used {
+            opacity: 0.3;
+            pointer-events: none;
+            transform: scale(0.8);
+        }
+
+        .letter-tile.in-word {
+            width: 45px;
+            height: 45px;
+            font-size: 1.4em;
+            margin: 2px;
+            cursor: pointer;
+        }
+
+        .letter-tile.in-word:hover {
+            opacity: 0.7;
+        }
+
+        .buttons {
+            text-align: center;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 35px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-reset {
+            background: rgba(245, 250, 255, 0.2);
+            color: #f5faff;
+            border: 2px solid rgba(245, 250, 255, 0.3);
+        }
+
+        .btn-reset:hover {
+            background: rgba(245, 250, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .btn-home {
+            background: rgba(245, 250, 255, 0.2);
+            color: #f5faff;
+            border: 2px solid rgba(245, 250, 255, 0.3);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-home:hover {
+            background: rgba(245, 250, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: rgba(79, 172, 254, 0.2);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(79, 172, 254, 0.5);
+            animation: fadeIn 0.8s ease;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .success-message h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #4facfe;
+        }
+
+        .success-message .emoji {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes snapIn {
+            0% {
+                transform: scale(0.5) rotate(-10deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2) rotate(5deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .snap-animation {
+            animation: snapIn 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 1.6em;
+            }
+
+            .question {
+                font-size: 1.1em;
+            }
+
+            .letter-tile {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5em;
+            }
+
+            .word-blank {
+                min-width: 150px;
+                min-height: 45px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="emoji">🎯</span>
+            <h1>Word Builder</h1>
+            <p>Ricomponi la parola corretta!</p>
+        </div>
+
+        <div class="stress-bar-container">
+            <div class="stress-label">📊 Livello Stress</div>
+            <div class="stress-bar">
+                <div class="stress-fill" id="stressFill"></div>
+            </div>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            <span class="emoji">🎉</span>
+            <h2>Perfetto!</h2>
+            <p style="font-size: 1.2em; margin-bottom: 15px;">Hai ricomposto correttamente la parola <strong>RISORSE</strong>!</p>
+            <p style="font-size: 1em; opacity: 0.9;">Lo stress lavoro-correlato si manifesta quando le richieste superano le risorse disponibili per farvi fronte. Ricordalo sempre! 💡</p>
+        </div>
+
+        <div class="question-box">
+            <div class="question">
+                Lo stress lavoro-correlato si manifesta quando c'è uno squilibrio tra le richieste nei confronti della persona e le
+                <span class="word-blank" id="wordBlank"></span>
+                disponibili per farvi fronte.
+            </div>
+        </div>
+
+        <div class="letters-container" id="lettersContainer"></div>
+
+        <div class="buttons">
+            <button class="btn btn-reset" onclick="resetGame()">🔄 Ricomincia</button>
+        </div>
+    </div>
+
+    <script>
+        const correctWord = 'RISORSE';
+        const shuffledLetters = 'SERRISO'.split('');
+        let selectedLetters = [];
+        let usedIndices = [];
+
+        function init() {
+            renderLetters();
+            updateStressBar();
+        }
+
+        function renderLetters() {
+            const container = document.getElementById('lettersContainer');
+            container.innerHTML = '';
+
+            shuffledLetters.forEach((letter, index) => {
+                const tile = document.createElement('div');
+                tile.className = 'letter-tile';
+                if (usedIndices.includes(index)) {
+                    tile.classList.add('used');
+                }
+                tile.textContent = letter;
+                tile.onclick = () => selectLetter(letter, index);
+                container.appendChild(tile);
+            });
+        }
+
+        function selectLetter(letter, index) {
+            if (usedIndices.includes(index)) return;
+            if (selectedLetters.length >= correctWord.length) return;
+
+            selectedLetters.push(letter);
+            usedIndices.push(index);
+            
+            updateWordBlank();
+            renderLetters();
+            
+            // Controlla se la sequenza è corretta fino a questo punto
+            const currentSequence = selectedLetters.join('');
+            const correctSequence = correctWord.substring(0, selectedLetters.length);
+            
+            if (currentSequence === correctSequence) {
+                // Sequenza corretta! Stress scende
+                updateStressBar(false);
+            } else {
+                // Sequenza sbagliata! Stress aumenta
+                updateStressBar(true);
+                
+                // Shake e reset dopo un momento
+                setTimeout(() => {
+                    const wordBlank = document.getElementById('wordBlank');
+                    wordBlank.style.animation = 'shake 0.5s ease';
+                }, 100);
+                
+                setTimeout(() => {
+                    resetGame();
+                }, 1000);
+                return;
+            }
+            
+            if (selectedLetters.length === correctWord.length) {
+                checkWord();
+            }
+        }
+
+        function updateWordBlank() {
+            const wordBlank = document.getElementById('wordBlank');
+            wordBlank.innerHTML = '';
+
+            selectedLetters.forEach((letter, index) => {
+                const tile = document.createElement('div');
+                tile.className = 'letter-tile in-word snap-animation';
+                tile.textContent = letter;
+                tile.onclick = () => removeLetter(index);
+                wordBlank.appendChild(tile);
+            });
+        }
+
+        function removeLetter(index) {
+            const letterIndex = usedIndices[index];
+            selectedLetters.splice(index, 1);
+            usedIndices.splice(index, 1);
+            
+            updateWordBlank();
+            renderLetters();
+            updateStressBar();
+        }
+
+        function updateStressBar(increase = false) {
+            const fill = document.getElementById('stressFill');
+            
+            if (increase) {
+                // Se sbaglia, stress aumenta!
+                fill.className = 'stress-fill';
+                fill.style.width = '100%';
+                return;
+            }
+            
+            const progress = selectedLetters.length;
+            const totalLetters = correctWord.length;
+            const percentage = (progress / totalLetters) * 100;
+            
+            // Più componi, più lo stress scende
+            if (progress === 0) {
+                fill.className = 'stress-fill';
+                fill.style.width = '100%';
+            } else if (percentage <= 30) {
+                fill.className = 'stress-fill';
+                fill.style.width = (100 - percentage) + '%';
+            } else if (percentage <= 70) {
+                fill.className = 'stress-fill medium';
+                fill.style.width = (100 - percentage) + '%';
+            } else if (percentage < 100) {
+                fill.className = 'stress-fill low';
+                fill.style.width = (100 - percentage) + '%';
+            } else {
+                fill.className = 'stress-fill zero';
+                fill.style.width = '0%';
+            }
+        }
+
+        function checkWord() {
+            const userWord = selectedLetters.join('');
+            
+            if (userWord === correctWord) {
+                setTimeout(() => {
+                    document.getElementById('successMessage').classList.add('show');
+                    updateStressBar();
+                }, 500);
+            } else {
+                // Parola sbagliata - stress AUMENTA!
+                updateStressBar(true);
+                
+                // Shake animation
+                const wordBlank = document.getElementById('wordBlank');
+                wordBlank.style.animation = 'none';
+                setTimeout(() => {
+                    wordBlank.style.animation = 'shake 0.5s ease';
+                }, 10);
+                
+                // Reset dopo un po'
+                setTimeout(() => {
+                    resetGame();
+                }, 1500);
+            }
+        }
+
+        function resetGame() {
+            selectedLetters = [];
+            usedIndices = [];
+            document.getElementById('successMessage').classList.remove('show');
+            updateWordBlank();
+            renderLetters();
+            updateStressBar();
+        }
+
+        // Inizializza il gioco
+        init();
+    </script>
+</body>
+</html>
