@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Builder - Stress Lavoro-Correlato</title>
+    <title>Giochi Stress Lavoro-Correlato</title>
     <style>
         * {
             margin: 0;
@@ -16,27 +16,43 @@
             background-color: #0a3d66;
             color: #f5faff;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 20px;
         }
 
+        .game-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: none;
+        }
+
+        .game-container.active {
+            display: block;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .container {
-            max-width: 700px;
-            width: 100%;
             background: rgba(245, 250, 255, 0.05);
             backdrop-filter: blur(10px);
             border-radius: 30px;
             padding: 40px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             border: 2px solid rgba(245, 250, 255, 0.1);
-            animation: fadeIn 0.8s ease;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+        }
+
+        .game-progress {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 10px;
         }
 
         .header h1 {
@@ -51,8 +67,9 @@
             margin-bottom: 10px;
         }
 
+        /* GAME 1 - Word Builder */
         .stress-bar-container {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .stress-label {
@@ -76,29 +93,28 @@
             width: 100%;
             background: linear-gradient(90deg, #ff4444, #ff6b6b);
             transition: all 0.5s ease;
-            border-radius: 15px;
         }
 
         .stress-fill.medium {
-            background: linear-gradient(90deg, #ff9500, #ffb347);
-            width: 66%;
+            width: 60%;
+            background: linear-gradient(90deg, #ffa500, #ffb733);
         }
 
         .stress-fill.low {
-            background: linear-gradient(90deg, #4ade80, #22c55e);
-            width: 33%;
+            width: 30%;
+            background: linear-gradient(90deg, #4CAF50, #81C784);
         }
 
         .stress-fill.zero {
-            background: linear-gradient(90deg, #10b981, #059669);
             width: 0%;
+            opacity: 0;
         }
 
         .question-box {
             background: rgba(245, 250, 255, 0.08);
             padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
             border: 2px solid rgba(245, 250, 255, 0.15);
         }
 
@@ -106,146 +122,381 @@
             font-size: 1.3em;
             line-height: 1.6;
             text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .word-blank {
             display: inline-flex;
+            gap: 5px;
             min-width: 200px;
             min-height: 50px;
-            background: rgba(79, 172, 254, 0.2);
-            border: 3px dashed rgba(79, 172, 254, 0.5);
-            border-radius: 10px;
+            padding: 5px 10px;
+            background: rgba(10, 61, 102, 0.3);
+            border: 2px dashed rgba(245, 250, 255, 0.4);
+            border-radius: 12px;
             align-items: center;
             justify-content: center;
-            padding: 5px 10px;
-            margin: 0 5px;
-            vertical-align: middle;
-            gap: 5px;
-            flex-wrap: wrap;
         }
 
         .letters-container {
             display: flex;
-            gap: 10px;
-            justify-content: center;
             flex-wrap: wrap;
-            margin-bottom: 30px;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 20px;
         }
 
         .letter-tile {
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            background: linear-gradient(135deg, #1e88e5, #42a5f5);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.8em;
             font-weight: bold;
-            color: #0a3d66;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            user-select: none;
+            box-shadow: 0 4px 15px rgba(30, 136, 229, 0.4);
+            border: 2px solid rgba(245, 250, 255, 0.3);
         }
 
-        .letter-tile:hover {
+        .letter-tile:hover:not(.used) {
             transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+            box-shadow: 0 6px 20px rgba(30, 136, 229, 0.6);
         }
 
         .letter-tile.used {
             opacity: 0.3;
-            pointer-events: none;
-            transform: scale(0.8);
+            cursor: not-allowed;
+            transform: scale(0.9);
         }
 
         .letter-tile.in-word {
-            width: 45px;
-            height: 45px;
-            font-size: 1.4em;
-            margin: 2px;
-            cursor: pointer;
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
         }
 
-        .letter-tile.in-word:hover {
-            opacity: 0.7;
+        @keyframes snapIn {
+            0% { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
 
-        .buttons {
+        .snap-animation {
+            animation: snapIn 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* GAME 2 - Bubble Match */
+        .timer-container {
             text-align: center;
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 15px 35px;
-            font-size: 1.1em;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-reset {
-            background: rgba(245, 250, 255, 0.2);
-            color: #f5faff;
-            border: 2px solid rgba(245, 250, 255, 0.3);
-        }
-
-        .btn-reset:hover {
-            background: rgba(245, 250, 255, 0.3);
-            transform: translateY(-3px);
-        }
-
-        .btn-home {
-            background: rgba(245, 250, 255, 0.2);
-            color: #f5faff;
-            border: 2px solid rgba(245, 250, 255, 0.3);
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-home:hover {
-            background: rgba(245, 250, 255, 0.3);
-            transform: translateY(-3px);
-        }
-
-        .success-message {
-            display: none;
-            text-align: center;
-            padding: 30px;
-            background: rgba(79, 172, 254, 0.2);
-            border-radius: 20px;
             margin-bottom: 20px;
-            border: 2px solid rgba(79, 172, 254, 0.5);
-            animation: fadeIn 0.8s ease;
         }
 
-        .success-message.show {
-            display: block;
-        }
-
-        .success-message h2 {
-            font-size: 2em;
-            margin-bottom: 10px;
+        .timer {
+            display: inline-block;
+            background: rgba(245, 250, 255, 0.1);
+            padding: 15px 30px;
+            border-radius: 15px;
+            border: 2px solid rgba(245, 250, 255, 0.2);
+            font-size: 1.5em;
+            font-weight: bold;
             color: #4facfe;
         }
 
-        .success-message .emoji {
-            font-size: 3em;
-            display: block;
-            margin-bottom: 10px;
+        .timer.warning {
+            animation: pulse 1s infinite;
+            color: #ff6b6b;
+            border-color: #ff6b6b;
         }
 
-        @keyframes fadeIn {
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .bubbles-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+            min-height: 150px;
+        }
+
+        .bubble {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            text-align: center;
+            font-size: 0.8em;
+            font-weight: 600;
+            cursor: grab;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            border: 3px solid rgba(245, 250, 255, 0.3);
+            user-select: none;
+        }
+
+        .bubble:active {
+            cursor: grabbing;
+        }
+
+        .bubble.dragging {
+            opacity: 0.7;
+            transform: scale(1.1);
+            z-index: 1000;
+        }
+
+        .bubble.error {
+            animation: errorShake 0.5s ease;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff4444 100%);
+        }
+
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .bubble.matched {
+            opacity: 0;
+            transform: scale(0);
+            pointer-events: none;
+        }
+
+        .bubble.selected {
+            border-color: #4facfe;
+            box-shadow: 0 0 0 5px rgba(79, 172, 254, 0.3);
+        }
+
+        .categories-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .category-card {
+            background: rgba(245, 250, 255, 0.08);
+            border: 3px dashed rgba(245, 250, 255, 0.3);
+            border-radius: 20px;
+            padding: 15px 12px;
+            text-align: center;
+            width: 160px;
+            min-height: 110px;
+            transition: all 0.3s ease;
+        }
+
+        .category-card.drag-over {
+            background: rgba(79, 172, 254, 0.2);
+            border-color: #4facfe;
+            border-style: solid;
+            transform: scale(1.05);
+        }
+
+        .category-card h3 {
+            font-size: 0.95em;
+            margin-bottom: 8px;
+            color: #4facfe;
+        }
+
+        .category-icon {
+            font-size: 2.5em;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.5s ease;
+        }
+
+        .category-icon.show {
+            opacity: 1;
+            transform: scale(1);
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(-180deg); }
+            50% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        /* GAME 3 - Risk Radar */
+        .dashboard {
+            background: rgba(245, 250, 255, 0.08);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 2px solid rgba(245, 250, 255, 0.15);
+        }
+
+        .stress-meter-container {
+            margin-bottom: 40px;
+        }
+
+        .stress-value {
+            text-align: center;
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            transition: all 0.5s ease;
+        }
+
+        .stress-value.high {
+            color: #ff4444;
+        }
+
+        .stress-value.medium {
+            color: #ffa500;
+        }
+
+        .stress-value.low {
+            color: #4CAF50;
+        }
+
+        .thermometer {
+            width: 100%;
+            height: 40px;
+            background: rgba(245, 250, 255, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid rgba(245, 250, 255, 0.2);
+        }
+
+        .thermometer-fill {
+            height: 100%;
+            width: 100%;
+            transition: all 0.8s ease;
+            border-radius: 20px;
+        }
+
+        .thermometer-fill.high {
+            background: linear-gradient(90deg, #ff4444, #ff6b6b);
+        }
+
+        .thermometer-fill.medium {
+            background: linear-gradient(90deg, #ffa500, #ffb733);
+        }
+
+        .thermometer-fill.low {
+            background: linear-gradient(90deg, #4CAF50, #81C784);
+        }
+
+        .practices-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .practice-item {
+            background: rgba(245, 250, 255, 0.05);
+            padding: 20px 15px;
+            border-radius: 15px;
+            border: 3px solid rgba(245, 250, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            text-align: center;
+        }
+
+        .practice-item:hover {
+            transform: translateY(-5px);
+            background: rgba(245, 250, 255, 0.1);
+        }
+
+        .practice-item.active-good {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.15);
+        }
+
+        .practice-item.active-bad {
+            border-color: #ff4444;
+            background: rgba(255, 68, 68, 0.15);
+        }
+
+        .practice-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(245, 250, 255, 0.2);
+            border: 3px solid rgba(245, 250, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .practice-item.active-good .practice-toggle {
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            border-color: #4CAF50;
+        }
+
+        .practice-item.active-bad .practice-toggle {
+            background: linear-gradient(135deg, #ff4444, #ff6b6b);
+            border-color: #ff4444;
+        }
+
+        .practice-text {
+            flex: 1;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .btn-close {
+            background: rgba(245, 250, 255, 0.15);
+            color: #f5faff;
+            border: 2px solid rgba(245, 250, 255, 0.3);
+        }
+
+        .btn-close:hover {
+            background: rgba(245, 250, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .completion-message {
+            text-align: center;
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+            display: none;
+            animation: slideInUp 0.8s ease;
+        }
+
+        .completion-message.show {
+            display: block;
+        }
+
+        @keyframes slideInUp {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(30px);
             }
             to {
                 opacity: 1;
@@ -253,22 +504,149 @@
             }
         }
 
-        @keyframes snapIn {
-            0% {
-                transform: scale(0.5) rotate(-10deg);
-                opacity: 0;
-            }
-            50% {
-                transform: scale(1.2) rotate(5deg);
-            }
-            100% {
-                transform: scale(1) rotate(0deg);
-                opacity: 1;
-            }
+        .completion-message .arrow {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 15px;
+            animation: bounceArrow 2s infinite;
         }
 
-        .snap-animation {
-            animation: snapIn 0.5s ease;
+        @keyframes bounceArrow {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-8px) translateX(-8px); }
+        }
+
+        .completion-message .text {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: white;
+            display: block;
+        }
+
+        /* Common */
+        .success-message {
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s ease;
+            pointer-events: none;
+        }
+
+        .success-message.show {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+        }
+
+        .success-message h2 {
+            font-size: 2em;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .success-message p {
+            color: rgba(255, 255, 255, 0.95);
+            line-height: 1.6;
+        }
+
+        .success-popup {
+            position: relative;
+            top: auto;
+            left: auto;
+            transform: none;
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            z-index: 2000;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: all 0.5s ease;
+            max-width: 90%;
+            width: 100%;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .success-popup.show {
+            opacity: 1;
+            display: block;
+        }
+
+        .success-popup h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .success-popup .emoji {
+            font-size: 4em;
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .success-popup p {
+            font-size: 1.2em;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-reset {
+            background: rgba(245, 250, 255, 0.15);
+            color: #f5faff;
+            border: 2px solid rgba(245, 250, 255, 0.3);
+        }
+
+        .btn-reset:hover {
+            background: rgba(245, 250, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+        }
+
+        .btn-home {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: #0a3d66;
+            border: none;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6);
         }
 
         @media (max-width: 768px) {
@@ -280,8 +658,10 @@
                 font-size: 1.6em;
             }
 
-            .question {
-                font-size: 1.1em;
+            .bubble {
+                width: 150px;
+                height: 150px;
+                font-size: 0.8em;
             }
 
             .letter-tile {
@@ -298,132 +678,221 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <span class="emoji">🎯</span>
-            <h1>Word Builder</h1>
-            <p>Ricomponi la parola corretta!</p>
-        </div>
+    <!-- GAME 1: Word Builder -->
+    <div class="game-container active" id="game1">
+        <div class="container">
+            <div class="header">
+                <div class="game-progress">Gioco 1 di 3</div>
+                <span class="emoji">🎯</span>
+                <h1>Word Builder</h1>
+                <p>Ricomponi la parola corretta!</p>
+            </div>
 
-        <div class="stress-bar-container">
-            <div class="stress-label">📊 Livello Stress</div>
-            <div class="stress-bar">
-                <div class="stress-fill" id="stressFill"></div>
+            <div class="stress-bar-container">
+                <div class="stress-label">📊 Livello Stress</div>
+                <div class="stress-bar">
+                    <div class="stress-fill" id="stressFill1"></div>
+                </div>
+            </div>
+
+            <div class="question-box">
+                <div class="question">
+                    Lo stress lavoro-correlato si manifesta quando c'è uno squilibrio tra le richieste nei confronti della persona e le
+                    <span class="word-blank" id="wordBlank1"></span>
+                    disponibili per farvi fronte.
+                </div>
+            </div>
+
+            <div class="letters-container" id="lettersContainer1"></div>
+
+            <div class="buttons">
+                <button class="btn btn-reset" onclick="resetGame1()">🔄 Ricomincia</button>
+                <button class="btn btn-next" id="nextBtn1" style="display: none;" onclick="goToGame(2)">
+                    Prossimo Gioco ➡️
+                </button>
             </div>
         </div>
+    </div>
 
-        <div class="success-message" id="successMessage">
-            <span class="emoji">🎉</span>
-            <h2>Perfetto!</h2>
-            <p style="font-size: 1.2em; margin-bottom: 15px;">Hai ricomposto correttamente la parola <strong>RISORSE</strong>!</p>
-            <p style="font-size: 1em; opacity: 0.9;">Lo stress lavoro-correlato si manifesta quando le richieste superano le risorse disponibili per farvi fronte. Ricordalo sempre! 💡</p>
-        </div>
+    <!-- GAME 2: Bubble Match -->
+    <div class="game-container" id="game2">
+        <div class="container">
+            <div class="header">
+                <div class="game-progress">Gioco 2 di 3</div>
+                <span class="emoji">🎈</span>
+                <h1>Caccia allo Stress</h1>
+                <p>Trascina le bolle nelle categorie giuste!</p>
+            </div>
 
-        <div class="question-box">
-            <div class="question">
-                Lo stress lavoro-correlato si manifesta quando c'è uno squilibrio tra le richieste nei confronti della persona e le
-                <span class="word-blank" id="wordBlank"></span>
-                disponibili per farvi fronte.
+            <div class="timer-container">
+                <div class="timer" id="timer2">⏱️ 30s</div>
+            </div>
+
+            <div class="bubbles-container" id="bubblesContainer2"></div>
+
+            <div class="categories-container" id="categoriesContainer2"></div>
+
+            <div class="buttons">
+                <button class="btn btn-reset" onclick="resetGame2()">🔄 Ricomincia</button>
+                <button class="btn btn-next" onclick="goToGame(3)">Prossimo Gioco ➡️</button>
+            </div>
+
+            <div class="success-popup" id="successPopup2">
+                <span class="emoji">🎉</span>
+                <h2>Complimenti!</h2>
+                <p id="successMessage2"></p>
             </div>
         </div>
+    </div>
 
-        <div class="letters-container" id="lettersContainer"></div>
+    <!-- GAME 3: Risk Radar -->
+    <div class="game-container" id="game3">
+        <div class="container">
+            <div class="header">
+                <div class="game-progress">Gioco 3 di 3</div>
+                <span class="emoji">🎯</span>
+                <h1>Risk Radar</h1>
+                <p>Attiva le pratiche preventive per ridurre lo stress aziendale!</p>
+            </div>
 
-        <div class="buttons">
-            <button class="btn btn-reset" onclick="resetGame()">🔄 Ricomincia</button>
+            <div class="dashboard">
+                <div class="stress-meter-container">
+                    <div class="stress-label">🌡️ Livello Stress Aziendale</div>
+                    <div class="stress-value high" id="stressValue3">100%</div>
+                    <div class="thermometer">
+                        <div class="thermometer-fill high" id="thermometerFill3"></div>
+                    </div>
+                </div>
+
+                <div class="practices-container" id="practicesContainer3"></div>
+            </div>
+
+            <div class="buttons">
+                <button class="btn btn-reset" onclick="resetGame3()">🔄 Ricomincia</button>
+            </div>
+
+            <div class="success-popup" id="successPopup3">
+                <span class="emoji">↙️</span>
+                <h2>Complimenti!</h2>
+                <p style="font-size: 1.3em; color: white;">Continua il corso cliccando qui</p>
+            </div>
         </div>
     </div>
 
     <script>
-        const correctWord = 'RISORSE';
-        const shuffledLetters = 'SERRISO'.split('');
-        let selectedLetters = [];
-        let usedIndices = [];
-
-        function init() {
-            renderLetters();
-            updateStressBar();
+        // === NAVIGATION ===
+        let currentGame = 1;
+        
+        function goToGame(gameNumber) {
+            document.querySelectorAll('.game-container').forEach(g => g.classList.remove('active'));
+            document.getElementById('game' + gameNumber).classList.add('active');
+            currentGame = gameNumber;
+            window.scrollTo(0, 0);
+            
+            // Se vai al gioco 2, resetta e avvia il timer
+            if (gameNumber === 2) {
+                resetGame2();
+            }
         }
 
-        function renderLetters() {
-            const container = document.getElementById('lettersContainer');
+        function goHome() {
+            alert('Torna alla Home! (Inserisci qui il link)');
+        }
+
+        function closeGames() {
+            window.close();
+        }
+
+        // === GAME 1: Word Builder ===
+        const correctWord = 'RISORSE';
+        const shuffledLetters = 'SERRISO'.split('');
+        let selectedLetters1 = [];
+        let usedIndices1 = [];
+
+        function initGame1() {
+            renderLetters1();
+            updateStressBar1();
+        }
+
+        function renderLetters1() {
+            const container = document.getElementById('lettersContainer1');
             container.innerHTML = '';
 
             shuffledLetters.forEach((letter, index) => {
                 const tile = document.createElement('div');
                 tile.className = 'letter-tile';
-                if (usedIndices.includes(index)) {
+                if (usedIndices1.includes(index)) {
                     tile.classList.add('used');
                 }
                 tile.textContent = letter;
-                tile.onclick = () => selectLetter(letter, index);
+                tile.onclick = () => selectLetter1(letter, index);
                 container.appendChild(tile);
             });
         }
 
-        function selectLetter(letter, index) {
-            if (usedIndices.includes(index)) return;
-            if (selectedLetters.length >= correctWord.length) return;
+        function selectLetter1(letter, index) {
+            if (usedIndices1.includes(index)) return;
+            if (selectedLetters1.length >= correctWord.length) return;
 
-            selectedLetters.push(letter);
-            usedIndices.push(index);
+            selectedLetters1.push(letter);
+            usedIndices1.push(index);
             
-            updateWordBlank();
-            renderLetters();
+            updateWordBlank1();
+            renderLetters1();
             
             // Controlla se la sequenza è corretta fino a questo punto
-            const currentSequence = selectedLetters.join('');
-            const correctSequence = correctWord.substring(0, selectedLetters.length);
+            const currentSequence = selectedLetters1.join('');
+            const correctSequence = correctWord.substring(0, selectedLetters1.length);
             
             if (currentSequence === correctSequence) {
                 // Sequenza corretta! Stress scende
-                updateStressBar(false);
+                updateStressBar1(false);
             } else {
                 // Sequenza sbagliata! Stress aumenta
-                updateStressBar(true);
+                updateStressBar1(true);
                 
                 // Shake e reset dopo un momento
                 setTimeout(() => {
-                    const wordBlank = document.getElementById('wordBlank');
+                    const wordBlank = document.getElementById('wordBlank1');
                     wordBlank.style.animation = 'shake 0.5s ease';
                 }, 100);
                 
                 setTimeout(() => {
-                    resetGame();
+                    resetGame1();
                 }, 1000);
                 return;
             }
             
-            if (selectedLetters.length === correctWord.length) {
-                checkWord();
+            if (selectedLetters1.length === correctWord.length) {
+                checkWord1();
             }
         }
 
-        function updateWordBlank() {
-            const wordBlank = document.getElementById('wordBlank');
+        function updateWordBlank1() {
+            const wordBlank = document.getElementById('wordBlank1');
             wordBlank.innerHTML = '';
 
-            selectedLetters.forEach((letter, index) => {
+            selectedLetters1.forEach((letter, index) => {
                 const tile = document.createElement('div');
                 tile.className = 'letter-tile in-word snap-animation';
                 tile.textContent = letter;
-                tile.onclick = () => removeLetter(index);
+                tile.onclick = () => removeLetter1(index);
                 wordBlank.appendChild(tile);
             });
         }
 
-        function removeLetter(index) {
-            const letterIndex = usedIndices[index];
-            selectedLetters.splice(index, 1);
-            usedIndices.splice(index, 1);
+        function removeLetter1(index) {
+            const letterIndex = usedIndices1[index];
+            selectedLetters1.splice(index, 1);
+            usedIndices1.splice(index, 1);
             
-            updateWordBlank();
-            renderLetters();
-            updateStressBar();
+            updateWordBlank1();
+            renderLetters1();
+            updateStressBar1(false);
         }
 
-        function updateStressBar(increase = false) {
-            const fill = document.getElementById('stressFill');
+        function updateStressBar1(increase = false) {
+            const fill = document.getElementById('stressFill1');
             
             if (increase) {
                 // Se sbaglia, stress aumenta!
@@ -432,11 +901,11 @@
                 return;
             }
             
-            const progress = selectedLetters.length;
+            const progress = selectedLetters1.length;
             const totalLetters = correctWord.length;
             const percentage = (progress / totalLetters) * 100;
             
-            // Più componi, più lo stress scende
+            // Più componi correttamente, più lo stress scende
             if (progress === 0) {
                 fill.className = 'stress-fill';
                 fill.style.width = '100%';
@@ -455,43 +924,368 @@
             }
         }
 
-        function checkWord() {
-            const userWord = selectedLetters.join('');
+        function checkWord1() {
+            const userWord = selectedLetters1.join('');
             
             if (userWord === correctWord) {
                 setTimeout(() => {
-                    document.getElementById('successMessage').classList.add('show');
-                    updateStressBar();
+                    updateStressBar1(false);
+                    document.getElementById('nextBtn1').style.display = 'inline-block';
                 }, 500);
-            } else {
-                // Parola sbagliata - stress AUMENTA!
-                updateStressBar(true);
-                
-                // Shake animation
-                const wordBlank = document.getElementById('wordBlank');
-                wordBlank.style.animation = 'none';
-                setTimeout(() => {
-                    wordBlank.style.animation = 'shake 0.5s ease';
-                }, 10);
-                
-                // Reset dopo un po'
-                setTimeout(() => {
-                    resetGame();
-                }, 1500);
             }
         }
 
-        function resetGame() {
-            selectedLetters = [];
-            usedIndices = [];
-            document.getElementById('successMessage').classList.remove('show');
-            updateWordBlank();
-            renderLetters();
-            updateStressBar();
+        function resetGame1() {
+            selectedLetters1 = [];
+            usedIndices1 = [];
+            document.getElementById('nextBtn1').style.display = 'none';
+            updateWordBlank1();
+            renderLetters1();
+            updateStressBar1(false);
         }
 
-        // Inizializza il gioco
-        init();
+        // === GAME 2: Bubble Match ===
+        const bubblesData2 = [
+            { id: 1, text: "Stress positivo che aiuta a rispondere armoniosamente alle richieste", category: "eustress" },
+            { id: 2, text: "Stress negativo che provoca disagio e problemi di salute", category: "distress" },
+            { id: 3, text: "Ipertensione, insonnia, disfunzioni alimentari", category: "fisiologici" },
+            { id: 4, text: "Isolamento sociale, mancanza di motivazione", category: "psicologici" }
+        ];
+
+        const categories2 = [
+            { id: "eustress", name: "Eustress", icon: "💪" },
+            { id: "distress", name: "Distress", icon: "😰" },
+            { id: "fisiologici", name: "Effetti Fisiologici", icon: "❤️" },
+            { id: "psicologici", name: "Effetti Psicologici", icon: "😊" }
+        ];
+
+        let timeLeft2 = 30;
+        let timerInterval2 = null;
+        let matchedCount2 = 0;
+        let draggedBubble2 = null;
+        let selectedBubble2 = null;
+        let isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function initGame2() {
+            // Non avviare il timer automaticamente all'init
+            renderBubbles2();
+            renderCategories2();
+        }
+
+        function renderBubbles2() {
+            const container = document.getElementById('bubblesContainer2');
+            container.innerHTML = '';
+
+            const shuffledBubbles = shuffleArray(bubblesData2);
+
+            shuffledBubbles.forEach(bubble => {
+                const bubbleEl = document.createElement('div');
+                bubbleEl.className = 'bubble';
+                bubbleEl.id = `bubble-${bubble.id}`;
+                bubbleEl.textContent = bubble.text;
+                bubbleEl.draggable = !isMobile;
+                bubbleEl.dataset.category = bubble.category;
+
+                if (isMobile) {
+                    bubbleEl.onclick = () => selectBubble2(bubble.id);
+                } else {
+                    bubbleEl.addEventListener('dragstart', (e) => handleDragStart2(e, bubble.id));
+                    bubbleEl.addEventListener('dragend', handleDragEnd2);
+                }
+
+                container.appendChild(bubbleEl);
+            });
+        }
+
+        function renderCategories2() {
+            const container = document.getElementById('categoriesContainer2');
+            container.innerHTML = '';
+
+            categories2.forEach(cat => {
+                const card = document.createElement('div');
+                card.className = 'category-card';
+                card.id = `category-${cat.id}`;
+                card.dataset.category = cat.id;
+
+                card.innerHTML = `
+                    <h3>${cat.name}</h3>
+                    <div class="category-icon" id="icon-${cat.id}">${cat.icon}</div>
+                `;
+
+                if (isMobile) {
+                    card.onclick = () => dropOnCategory2(cat.id);
+                } else {
+                    card.addEventListener('dragover', handleDragOver2);
+                    card.addEventListener('dragleave', handleDragLeave2);
+                    card.addEventListener('drop', (e) => handleDrop2(e, cat.id));
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        function selectBubble2(bubbleId) {
+            if (selectedBubble2) {
+                document.getElementById(`bubble-${selectedBubble2}`).classList.remove('selected');
+            }
+            selectedBubble2 = bubbleId;
+            document.getElementById(`bubble-${bubbleId}`).classList.add('selected');
+        }
+
+        function dropOnCategory2(categoryId) {
+            if (!selectedBubble2) return;
+
+            const bubble = bubblesData2.find(b => b.id === selectedBubble2);
+
+            if (bubble.category === categoryId) {
+                matchCorrect2(selectedBubble2, categoryId);
+            } else {
+                matchError2(selectedBubble2);
+            }
+
+            selectedBubble2 = null;
+        }
+
+        function handleDragStart2(e, bubbleId) {
+            draggedBubble2 = bubbleId;
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd2(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver2(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave2(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop2(e, categoryId) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+
+            const bubble = bubblesData2.find(b => b.id === draggedBubble2);
+            
+            if (bubble.category === categoryId) {
+                matchCorrect2(draggedBubble2, categoryId);
+            } else {
+                matchError2(draggedBubble2);
+            }
+
+            draggedBubble2 = null;
+        }
+
+        function matchCorrect2(bubbleId, categoryId) {
+            const bubbleEl = document.getElementById(`bubble-${bubbleId}`);
+            const iconEl = document.getElementById(`icon-${categoryId}`);
+
+            bubbleEl.classList.add('matched');
+            iconEl.classList.add('show');
+
+            matchedCount2++;
+
+            if (matchedCount2 === bubblesData2.length) {
+                gameComplete2();
+            }
+        }
+
+        function matchError2(bubbleId) {
+            const bubbleEl = document.getElementById(`bubble-${bubbleId}`);
+            bubbleEl.classList.add('error');
+            
+            setTimeout(() => {
+                bubbleEl.classList.remove('error');
+            }, 500);
+        }
+
+        function startTimer2() {
+            const timerEl = document.getElementById('timer2');
+            
+            timerInterval2 = setInterval(() => {
+                timeLeft2--;
+                timerEl.textContent = `⏱️ ${timeLeft2}s`;
+
+                if (timeLeft2 <= 10) {
+                    timerEl.classList.add('warning');
+                }
+
+                if (timeLeft2 <= 0) {
+                    if (matchedCount2 < bubblesData2.length) {
+                        resetGame2();
+                    }
+                }
+            }, 1000);
+        }
+
+        function gameComplete2() {
+            clearInterval(timerInterval2);
+            const timeTaken = 30 - timeLeft2;
+            
+            const popup = document.getElementById('successPopup2');
+            const msg = document.getElementById('successMessage2');
+            
+            if (msg) {
+                msg.textContent = `Hai completato il gioco in ${timeTaken} secondi! 🎯`;
+            }
+            if (popup) {
+                popup.classList.add('show');
+                setTimeout(() => {
+                    popup.classList.remove('show');
+                }, 4000);
+            }
+        }
+
+        function resetGame2() {
+            clearInterval(timerInterval2);
+            timeLeft2 = 30;
+            matchedCount2 = 0;
+            draggedBubble2 = null;
+            selectedBubble2 = null;
+
+            document.getElementById('timer2').textContent = '⏱️ 30s';
+            document.getElementById('timer2').classList.remove('warning');
+
+            document.querySelectorAll('#game2 .category-icon').forEach(icon => {
+                icon.classList.remove('show');
+            });
+
+            renderBubbles2();
+            startTimer2();
+        }
+
+        // === GAME 3: Risk Radar ===
+        let stressLevel3 = 100;
+        
+        const practicesData3 = [
+            { id: 1, text: "Chiarezza sugli obiettivi aziendali", type: 'good', impact: -25 },
+            { id: 2, text: "Partecipazione dei lavoratori alle decisioni che li riguardano", type: 'good', impact: -25 },
+            { id: 3, text: "Controllo esclusivo delle attività da parte dei dirigenti", type: 'bad', impact: 30 },
+            { id: 4, text: "Formazione delle figure aziendali", type: 'good', impact: -25 },
+            { id: 5, text: "Standardizzazione rigorosa dei processi lavorativi", type: 'bad', impact: 30 }
+        ];
+
+        const practices3 = {};
+        practicesData3.forEach(p => {
+            practices3[p.id] = { active: false, type: p.type, impact: p.impact };
+        });
+
+        function initGame3() {
+            renderPractices3();
+            updateStressMeter3();
+        }
+
+        function renderPractices3() {
+            const container = document.getElementById('practicesContainer3');
+            container.innerHTML = '';
+            
+            const shuffled = shuffleArray(practicesData3);
+            
+            shuffled.forEach(practice => {
+                const div = document.createElement('div');
+                div.className = 'practice-item';
+                div.dataset.id = practice.id;
+                div.onclick = () => togglePractice3(practice.id);
+                
+                div.innerHTML = `
+                    <div class="practice-toggle">⚪</div>
+                    <div class="practice-text">${practice.text}</div>
+                `;
+                
+                container.appendChild(div);
+            });
+        }
+
+        function togglePractice3(id) {
+            const practice = practices3[id];
+            const element = document.querySelector(`#game3 [data-id="${id}"]`);
+            const toggle = element.querySelector('.practice-toggle');
+
+            practice.active = !practice.active;
+
+            if (practice.active) {
+                if (practice.type === 'good') {
+                    element.classList.add('active-good');
+                    element.classList.remove('active-bad');
+                    toggle.textContent = '✅';
+                    stressLevel3 += practice.impact;
+                } else {
+                    element.classList.add('active-bad');
+                    element.classList.remove('active-good');
+                    toggle.textContent = '❌';
+                    stressLevel3 += practice.impact;
+                }
+            } else {
+                element.classList.remove('active-good', 'active-bad');
+                toggle.textContent = '⚪';
+                stressLevel3 -= practice.impact;
+            }
+
+            stressLevel3 = Math.max(0, Math.min(100, stressLevel3));
+            updateStressMeter3();
+            checkWinCondition3();
+        }
+
+        function updateStressMeter3() {
+            const valueEl = document.getElementById('stressValue3');
+            const fillEl = document.getElementById('thermometerFill3');
+
+            valueEl.textContent = stressLevel3 + '%';
+            fillEl.style.width = stressLevel3 + '%';
+
+            valueEl.className = 'stress-value';
+            fillEl.className = 'thermometer-fill';
+
+            if (stressLevel3 >= 70) {
+                valueEl.classList.add('high');
+                fillEl.classList.add('high');
+            } else if (stressLevel3 >= 30) {
+                valueEl.classList.add('medium');
+                fillEl.classList.add('medium');
+            } else {
+                valueEl.classList.add('low');
+                fillEl.classList.add('low');
+            }
+        }
+
+        function checkWinCondition3() {
+            const goodPracticesActive = practices3[1].active && practices3[2].active && practices3[4].active;
+            const badPracticesInactive = !practices3[3].active && !practices3[5].active;
+
+            if (goodPracticesActive && badPracticesInactive && stressLevel3 < 30) {
+                setTimeout(() => {
+                    document.getElementById('successPopup3').classList.add('show');
+                }, 500);
+            }
+        }
+
+        function resetGame3() {
+            for (let id in practices3) {
+                practices3[id].active = false;
+            }
+
+            stressLevel3 = 100;
+            updateStressMeter3();
+            document.getElementById('successPopup3').classList.remove('show');
+            renderPractices3();
+        }
+
+        // === INITIALIZE ===
+        initGame1();
+        initGame2();
+        initGame3();
     </script>
 </body>
 </html>
